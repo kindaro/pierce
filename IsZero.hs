@@ -53,6 +53,8 @@ data L = T        -- True.
 -- [(I T Z Z,"")]
 -- λ parser $$ "7"
 -- [(S (S (S (S (S (S (S Z)))))),"")]
+-- λ parser $$ "-3"
+-- [(P (P (P Z)),"")]
 
 parser :: ReadP L
 parser = choice $ fmap whitespaced
@@ -85,7 +87,8 @@ parser = choice $ fmap whitespaced
     e = string "iszero" >> E <$> parser
     n = convert <$> readS_to_P (reads :: ReadS Integer)
       where convert 0 = Z
-            convert x = S (convert $ pred x)
+            convert x | x > 0 = S (convert $ pred x)
+                      | x < 0 = P (convert $ succ x)
 
 -- |
 -- λ evaluator $ parser $$$ "7"
