@@ -87,6 +87,16 @@ parser = choice $ fmap whitespaced
       where convert 0 = Z
             convert x = S (convert $ pred x)
 
+-- |
+-- λ evaluator $ parser $$$ "7"
+-- 7
+
+evaluator :: L -> Integer
+evaluator x@ (S _) = convert x
+  where convert Z = 0
+        convert (S x) = succ (convert x)
+        convert (P x) = pred (convert x)
+
 -- TODO:
 -- [*] Allow optional parentheses.
 -- [*] Allow positional arabic numerals.
