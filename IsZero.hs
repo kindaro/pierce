@@ -3,14 +3,14 @@ module IsZero where
 import Text.ParserCombinators.ReadP
 
 -- |
--- λ parser $$ "0"
--- [(Z,"")]
+-- λ string "a" $$ "ab"
+-- [("a","b")]
 
 ($$) = readP_to_S
 
 -- |
--- λ parser $$$ "0"
--- Z
+-- λ string "ab" $$$ "ab"
+-- "ab"
 
 p $$$ s = fst . head $ readP_to_S (p >>= \x -> eof >> return x) s
 
