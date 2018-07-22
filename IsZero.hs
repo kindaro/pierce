@@ -164,28 +164,35 @@ simplify = toN . fromN
 
 -- |
 -- λ evaluator $ parser $$$ "7"
--- 7
+-- Left 7
 -- λ evaluator $ parser $$$ "-3"
--- -3
+-- Left (-3)
 -- λ evaluator $ parser $$$ "if true then 1 else 0"
--- 1
+-- Left 1
 -- λ evaluator $ parser $$$ "if false then 1 else 0"
--- 0
+-- Left 0
 -- λ evaluator $ parser $$$ "if (iszero 0) then 1 else 0"
--- 1
+-- Left 1
 -- λ evaluator $ parser $$$ "if (iszero 1) then 1 else 0"
--- 0
+-- Left 0
+-- λ evaluator $ parser $$$ "iszero (pred (succ 0))"
+-- Right True
 
-evaluator :: L -> Integer
-evaluator T = error "Unexpected `true`."
-evaluator F = error "Unexpected `false`."
-evaluator (I p t f) | evaluatorB p = evaluator t
-                    | otherwise    = evaluator f
-evaluator (N x) = fromN x
-evaluator (E _) = error "Unexpected `ifzero`."
+evaluator :: L -> Either Integer Bool
+evaluator x@ T = Right . evaluatorB $ x
+evaluator x@ F = Right . evaluatorB $ x
+evaluator x@ (E _) = Right . evaluatorB $ x
+evaluator x@ (I p t f) = case evaluator p of
+    Right True -> evaluator t
+    Right False -> evaluator f
+    Left _ -> error "Condition is not boolean."
+evaluator x@ (N _) = Left . evaluatorI $ x
+
+evaluatorI :: L -> Integer
+evaluatorI (N x) = fromN x
 
 evaluatorB :: L -> Bool
 evaluatorB T = True
 evaluatorB F = False
-evaluatorB (E x) | evaluator x == 0 = True
-                 | otherwise        = False
+evaluatorB (E x) | evaluator x == Left 0 = True
+                 | otherwise             = False
