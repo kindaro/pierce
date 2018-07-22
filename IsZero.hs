@@ -29,6 +29,9 @@ data L = T        -- True.
 -- λ parser $$ " if true then succ 0 else if iszero succ 0 then 0 else succ 0 "
 -- [(I T (S Z) (I (E (S Z)) Z (S Z)),"")]
 --
+-- λ parser $$ " if true then (succ 0) else (if (iszero (succ 0)) then 0 else (succ 0)) "
+-- [(I T (S Z) (I (E (S Z)) Z (S Z)),"")]
+--
 -- λ parser $$ "true"
 -- [(T,"")]
 -- λ parser $$ "false"
@@ -45,8 +48,15 @@ data L = T        -- True.
 -- [(I T Z Z,"")]
 
 parser :: ReadP L
-parser = choice $ between skipSpaces skipSpaces <$> [ t, f, i, z, s, p, e ]
+parser = choice $ fmap whitespaced
+                $                         parsers
+                    ++ fmap parenthesized parsers
   where
+    parsers = [ t, f, i, z, s, p, e ]
+
+    whitespaced = between skipSpaces skipSpaces
+    parenthesized = between (string "(") (string ")")
+
     t = string "true" >> return T
     f = string "false" >> return F
     i = do
@@ -69,6 +79,6 @@ parser = choice $ between skipSpaces skipSpaces <$> [ t, f, i, z, s, p, e ]
     e = string "iszero" >> E <$> parser
 
 -- TODO:
--- [ ] Allow optional parentheses.
+-- [*] Allow optional parentheses.
 -- [ ] Allow positional arabic numerals.
 -- [ ] Write an evaluator.
