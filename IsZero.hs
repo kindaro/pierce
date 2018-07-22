@@ -32,6 +32,9 @@ data L = T        -- True.
 -- λ parser $$ " if true then (succ 0) else (if (iszero (succ 0)) then 0 else (succ 0)) "
 -- [(I T (S Z) (I (E (S Z)) Z (S Z)),"")]
 --
+-- λ parser $$ "if true then 1 else if iszero 1 then 0 else 1"
+-- [(I T (S Z) (I (E (S Z)) Z (S Z)),"")]
+--
 -- λ parser $$ "true"
 -- [(T,"")]
 -- λ parser $$ "false"
@@ -46,13 +49,15 @@ data L = T        -- True.
 -- [(E Z,"")]
 -- λ parser $$ "if true then 0 else 0"
 -- [(I T Z Z,"")]
+-- λ parser $$ "7"
+-- [(S (S (S (S (S (S (S Z)))))),"")]
 
 parser :: ReadP L
 parser = choice $ fmap whitespaced
                 $                         parsers
                     ++ fmap parenthesized parsers
   where
-    parsers = [ t, f, i, z, s, p, e ]
+    parsers = [ t, f, i, s, p, e, n ]
 
     whitespaced = between skipSpaces skipSpaces
     parenthesized = between (string "(") (string ")")
@@ -67,7 +72,6 @@ parser = choice $ fmap whitespaced
         string "else"
         iElse <- parser
         return (I iPred iThen iElse)
-    z = string "0" >> return Z
     s = do
         string "succ"
         x <- parser
@@ -77,8 +81,11 @@ parser = choice $ fmap whitespaced
         x <- parser
         return (P x)
     e = string "iszero" >> E <$> parser
+    n = convert <$> readS_to_P (reads :: ReadS Integer)
+      where convert 0 = Z
+            convert x = S (convert $ pred x)
 
 -- TODO:
 -- [*] Allow optional parentheses.
--- [ ] Allow positional arabic numerals.
+-- [*] Allow positional arabic numerals.
 -- [ ] Write an evaluator.
