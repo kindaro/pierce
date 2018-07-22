@@ -28,6 +28,18 @@ import Text.ParserCombinators.ReadP
 
 p $$$ s = fst . head $ readP_to_S (p >>= \x -> eof >> return x) s
 
+-- |
+-- λ whitespaced (string "meow") $$ " meow "
+-- [("meow","")]
+whitespaced :: ReadP a -> ReadP a
+whitespaced = between skipSpaces skipSpaces
+
+-- |
+-- λ parenthesized (string "meow") $$ "(meow)"
+-- [("meow","")]
+parenthesized :: ReadP a -> ReadP a
+parenthesized = between (string "(") (string ")")
+
 -- | The language.
 data L = T        -- True.
        | F        -- False.
@@ -80,9 +92,6 @@ parser = choice $ fmap whitespaced
                     ++ fmap parenthesized parsers
   where
     parsers = [ t, f, i, e, n ]
-
-    whitespaced = between skipSpaces skipSpaces
-    parenthesized = between (string "(") (string ")")
 
     t = string "true" >> return T
     f = string "false" >> return F
