@@ -189,8 +189,3 @@ evaluatorB T = True
 evaluatorB F = False
 evaluatorB (E x) | evaluator x == 0 = True
                  | otherwise        = False
-
--- TODO:
--- [*] Allow optional parentheses.
--- [*] Allow positional arabic numerals.
--- [*] Write an evaluator.
