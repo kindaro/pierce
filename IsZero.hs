@@ -69,14 +69,8 @@ data N = Z        -- Zero.
 -- [(T,"")]
 -- λ parser $$ "false"
 -- [(F,"")]
--- λ parser $$ "0"
+-- λ parser $$ " ( 0 ) "
 -- [(N Z,"")]
--- λ parser $$ "succ 0"
--- [(N (S Z),"")]
--- λ parser $$ "pred 0"
--- [(N (P Z),"")]
--- λ parser $$ "succ pred 0"
--- [(N (S (P Z)),"")]
 -- λ parser $$ "iszero 0"
 -- [(E (N Z),"")]
 -- λ parser $$ "if true then 0 else 0"
@@ -87,12 +81,8 @@ data N = Z        -- Zero.
 -- [(N (P (P (P Z))),"")]
 
 parser :: ReadP L
-parser = choice $ fmap whitespaced
-                $                         parsers
-                    ++ fmap parenthesized parsers
+parser = choice $ fmap whitespaced $ [ t, f, i, e, n ] ++ fmap parenthesized [ t, f, i, e ]
   where
-    parsers = [ t, f, i, e, n ]
-
     t = string "true" >> return T
     f = string "false" >> return F
     i = do
@@ -106,8 +96,24 @@ parser = choice $ fmap whitespaced
     e = string "iszero" >> E <$> parser
     n = N <$> parseN
 
+-- |
+-- λ parseN $$ "0"
+-- [(Z,"")]
+-- λ parseN $$ "(0)"
+-- [(Z,"")]
+-- λ parseN $$ " 0 "
+-- [(Z,"")]
+-- λ parseN $$ "succ 0"
+-- [(S Z,"")]
+-- λ parseN $$ "pred 0"
+-- [(P Z,"")]
+-- λ parseN $$ "succ pred 0"
+-- [(S (P Z),"")]
+-- λ parseN $$ "(succ (pred (0)))"
+-- [(S (P Z),"")]
+
 parseN :: ReadP N
-parseN = choice [ s, p, n ]
+parseN = choice $ fmap whitespaced $ [ s, p, n ] ++ fmap parenthesized [ s, p ]
   where
     s = do
         string "succ"
