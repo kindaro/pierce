@@ -45,6 +45,8 @@ data L = T        -- True.
 -- [(S Z,"")]
 -- λ parser $$ "pred 0"
 -- [(P Z,"")]
+-- λ parser $$ "succ pred 0"
+-- [(S (P Z),"")]
 -- λ parser $$ "iszero 0"
 -- [(E Z,"")]
 -- λ parser $$ "if true then 0 else 0"
