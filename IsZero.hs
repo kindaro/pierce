@@ -167,11 +167,30 @@ simplify = toN . fromN
 -- 7
 -- λ evaluator $ parser $$$ "-3"
 -- -3
+-- λ evaluator $ parser $$$ "if true then 1 else 0"
+-- 1
+-- λ evaluator $ parser $$$ "if false then 1 else 0"
+-- 0
+-- λ evaluator $ parser $$$ "if (iszero 0) then 1 else 0"
+-- 1
+-- λ evaluator $ parser $$$ "if (iszero 1) then 1 else 0"
+-- 0
 
 evaluator :: L -> Integer
+evaluator T = error "Unexpected `true`."
+evaluator F = error "Unexpected `false`."
+evaluator (I p t f) | evaluatorB p = evaluator t
+                    | otherwise    = evaluator f
 evaluator (N x) = fromN x
+evaluator (E _) = error "Unexpected `ifzero`."
+
+evaluatorB :: L -> Bool
+evaluatorB T = True
+evaluatorB F = False
+evaluatorB (E x) | evaluator x == 0 = True
+                 | otherwise        = False
 
 -- TODO:
 -- [*] Allow optional parentheses.
 -- [*] Allow positional arabic numerals.
--- [ ] Write an evaluator.
+-- [*] Write an evaluator.
