@@ -67,3 +67,8 @@ parser = choice $ between skipSpaces skipSpaces <$> [ t, f, i, z, s, p, e ]
         x <- parser
         return (P x)
     e = string "iszero" >> E <$> parser
+
+-- TODO:
+-- [ ] Allow optional parentheses.
+-- [ ] Allow positional arabic numerals.
+-- [ ] Write an evaluator.
