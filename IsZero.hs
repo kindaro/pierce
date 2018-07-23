@@ -196,3 +196,37 @@ evaluatorB T = True
 evaluatorB F = False
 evaluatorB (E x) | evaluator x == Left 0 = True
                  | otherwise             = False
+
+-- | The language as presented originally, with numerals sewn in.
+data L' = T'           -- True.
+        | F'           -- False.
+        | I' L' L' L'  -- If.
+        | Z'           -- Zero.
+        | S' L'        -- Successor.
+        | P' L'        -- Predecessor.
+        | E' L'        -- Is zero?
+    deriving (Show, Eq, Ord)
+
+-- | Generate L'.
+--
+-- Exactly in accordance with Benjamin Pierce's answer:
+-- λ length $ s 3
+-- 59439
+
+s 0 = [ ]
+s n = [Z', T', F']
+   ++ [S' x | x <- s']
+   ++ [P' x | x <- s']
+   ++ [E' x | x <- s']
+   ++ [I' x y z | x <- s', y <- s', z <- s']
+  where s' = s (pred n)
+
+-- | Compute the size of L'.
+--
+-- In accordance with Benjamin Pierce's answer, again:
+-- λ c 3
+-- 59439
+
+c 0 = 0
+c n = 3 + 3 * c' + c'^3
+  where c' = c (pred n)
